@@ -1,0 +1,30 @@
+- name: wireguard_exporter
+  hosts: all
+  become: true
+
+  tasks:
+
+  - name: install cargo
+    apt:
+      name: cargo
+      state: present
+      update_cache: yes
+
+  - name: install wireguard_exporter
+    cargo:
+      name: prometheus_wireguard_exporter
+      state: present
+
+  - name: copied the prometheus_wireguard_exporter executable to /usr/local/bin/
+    shell: install -m755 /root/.cargo/bin/prometheus_wireguard_exporter /usr/local/bin/
+
+  - name: copy service file 
+    template:
+      src: prometheus-wireguard-exporter.service.j2
+      dest: /etc/systemd/system/prometheus-wireguard-exporter.service
+
+  - name: enable prometheus-wireguard-exporter.service
+    systemd:
+      name: prometheus-wireguard-exporter.service
+      enabled: yes
+      state: started
